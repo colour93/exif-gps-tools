@@ -25,5 +25,4 @@
 	},
 	"include": ["./src/**/*.ts", "./src/**/*.tsx"],
 	"exclude": ["node_modules"],
-	"files": ["custom.d.ts"]
 }
