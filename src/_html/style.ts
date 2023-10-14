@@ -3,14 +3,12 @@ import { createGlobalStyle } from 'styled-components'
 
 import { AnimationCSS } from './animation'
 import './fonts.css'
-import ElementCSS from 'assets/element-ui-icon/index.css'
 //[ css ]
 
 //=> Style | '全局样式'
 export const GlobalStyle = createGlobalStyle`
 /* 引入其他 CSS */
 ${AnimationCSS}
-${ElementCSS}
 
 *,
 body,
@@ -23,9 +21,6 @@ html {
 	word-wrap: break-word;
 	text-decoration: none;
 	-webkit-tap-highlight-color: transparent;
-	font-family: Titillium Web, Poppins, Noto Sans SC, -apple-system, system-ui, BlinkMacSystemFont,
-		Segoe UI, Roboto, PingFang SC, Hiragino Sans GB, Microsoft YaHei,
-		Helvetica Neue, sans-serif;
 }
 
 body {
@@ -35,7 +30,6 @@ body {
 
 :not(body) {
 	transition: all 0.5s cubic-bezier(0.22, 0.58, 0.12, 0.98); /* 全局线性 */
-    /* transition: all 0.5s cubic-bezier(0.66, 0.09, 0.49, 1.21);*//* 全局非线性 */
 }
 
 /* 滚动条 & 选中 */
