@@ -4,7 +4,7 @@ import { GeocodeResponse, Geocodes } from "types/Geocode";
 
 const API = {
   geocode: "https://restapi.amap.com/v3/geocode/geo",
-	detail: "https://restapi.amap.com/v3/place/detail"
+  detail: "https://restapi.amap.com/v3/place/detail",
 };
 
 function locationConvert(rawLocation: string) {
@@ -18,18 +18,18 @@ function locationConvert(rawLocation: string) {
 export default () => {
   const localStorageKey = localStorage.getItem("key");
 
-  const [results, setResults] = useState<Geocodes[]>();
-  const [details, setDetails] =
-    useState<{ value: number; label: string; otherKey: number }[]>();
+  // const [results, setResults] = useState<Geocodes[]>();
+  // const [details, setDetails] =
+  //   useState<{ value: number; label: string; otherKey: number }[]>();
 
-  const updateResults = (results: Geocodes[]) => {
-    setResults(results);
-    setDetails(
-      results.map(({ formatted_address }, index) => {
-        return { value: index, label: formatted_address, otherKey: index };
-      })
-    );
-  };
+  // const updateResults = (results: Geocodes[]) => {
+  //   setResults(results);
+  //   setDetails(
+  //     results.map(({ formatted_address }, index) => {
+  //       return { value: index, label: formatted_address, otherKey: index };
+  //     })
+  //   );
+  // };
 
   return (
     <div style={{ padding: "10px" }}>
@@ -64,12 +64,12 @@ export default () => {
               <Form.Input
                 field="placeUrl"
                 label={{
-									text: "地理位置 URL 或 ID",
-									extra: "（即将支持）"
-								}}
+                  text: "地理位置 URL 或 ID",
+                  extra: "（即将支持）",
+                }}
                 extraText="如：https://surl.amap.com/f0nreX51o667 或 https://amap.com/place/B000A7BD6C 或 B000A7BD6C"
                 showClear
-								disabled
+                disabled
               ></Form.Input>
 
               <Button
@@ -92,8 +92,12 @@ export default () => {
                       return;
                     }
 
-                    updateResults(resJson.geocodes);
-                    formApi.setValue("resultDetail", 0);
+                    // updateResults(resJson.geocodes);
+                    // formApi.setValue("resultDetail", 0);
+                    formApi.setValue(
+                      "resultDetail",
+                      resJson.geocodes[0].formatted_address
+                    );
                     formApi.setValue(
                       "resultLocation",
                       locationConvert(resJson.geocodes[0].location)
@@ -111,7 +115,7 @@ export default () => {
             </Col>
 
             <Col span={12}>
-              <Form.Select
+              {/* <Form.Select
                 field="resultDetail"
                 label="结果条目"
                 optionList={details}
@@ -121,7 +125,12 @@ export default () => {
                     locationConvert(results[value].location)
                   );
                 }}
-              ></Form.Select>
+              ></Form.Select> */}
+              <Form.Input
+                field="resultDetail"
+                label="结果条目"
+                readOnly
+              ></Form.Input>
               <Form.Input
                 field="resultLocation"
                 label="结果坐标"
