@@ -258,7 +258,7 @@ export default () => {
                 block
                 onClick={async () => {
                   try {
-                    if (!formState.values.resultLocation) {
+                    if (!formState.values.detailLocation) {
                       Toast.error("请先获取地理位置信息");
                       return;
                     }
@@ -267,7 +267,7 @@ export default () => {
                       return;
                     }
                     await navigator.clipboard.writeText(
-                      formState.values.resultLocation
+                      formState.values.detailLocation
                     );
                     Toast.success("复制成功");
                   } catch (error) {
