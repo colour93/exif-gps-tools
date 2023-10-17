@@ -129,7 +129,7 @@ export default () => {
       <Form>
         {({ formState, values, formApi }) => (
           <Row gutter={16}>
-            <Col span={8}>
+            <Col xs={24} md={12} lg={8}>
               <Form.Input
                 field="apiKey"
                 label={{
@@ -180,7 +180,7 @@ export default () => {
               >刷新页面</Button>
             </Col>
 
-            <Col span={8}>
+            <Col xs={24} md={12} lg={8}>
               <Tabs type="line">
                 <TabPane tab="位置名称" itemKey="placeString">
                   <Form.Input
@@ -237,7 +237,7 @@ export default () => {
               </Button>
             </Col>
 
-            <Col span={8}>
+            <Col xs={24} md={24} lg={8}>
               <ResultMapContainer
                 jsKey={formState.values.jsKey}
                 lng={detail.lng}
