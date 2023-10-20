@@ -17,8 +17,6 @@ export default function ResultMapContainer({
 }) {
   useEffect(() => {
 
-    console.log(1)
-
     if (!jsKey || map) return;
 
     AMapLoader.load({
@@ -72,3 +70,5 @@ export default function ResultMapContainer({
   );
 
 }
+
+// export default function 

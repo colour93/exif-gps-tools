@@ -1,8 +1,8 @@
-import { createGlobalStyle } from 'styled-components'
+import { createGlobalStyle } from "styled-components";
 //[ package ]
 
-import { AnimationCSS } from './animation'
-import './fonts.css'
+import { AnimationCSS } from "./animation";
+import "./fonts.css";
 //[ css ]
 
 //=> Style | '全局样式'
@@ -24,8 +24,6 @@ html {
 }
 
 body {
-	position: relative;
-	overflow: hidden;
 	padding: 10px 20px;
 }
 
@@ -87,4 +85,10 @@ body {
 	color: #597db7;
 	border-radius: 2px;
 }
-`
+
+
+body {
+	color: var(--semi-color-text-0);
+	background-color: var( --semi-color-bg-0);
+}
+`;
