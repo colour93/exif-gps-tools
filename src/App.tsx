@@ -1,5 +1,6 @@
 import { IconCode } from "@douyinfe/semi-icons";
 import {
+  Banner,
   Button,
   Col,
   Form,
@@ -10,12 +11,13 @@ import {
   Typography,
 } from "@douyinfe/semi-ui";
 import { FormApi, FormState } from "@douyinfe/semi-ui/lib/es/form";
-import ResultMapContainer from "Map";
+import { ResultMapContainer, QueryMapContainer } from "Map";
 import React, { useEffect, useState } from "react";
 import { QueryType } from "types/Common";
 import { Detail } from "types/Detail";
 import { GeocodeResponse } from "types/Geocode";
 import { SurlResultResponse } from "types/SurlResult";
+import { locationConvert } from "utils";
 
 const API = {
   surl: "https://amap-surl-parse.vercel.fur93.icu/",
@@ -23,12 +25,7 @@ const API = {
   detail: "https://restapi.amap.com/v3/place/detail",
 };
 
-const locationConvert = (rawLocation: string) => {
-  const locationArr = rawLocation.split(",").map(Number);
-  const lng = Math.abs(locationArr[0]) + "°" + (locationArr[0] > 0 ? "E" : "W");
-  const lat = Math.abs(locationArr[1]) + "°" + (locationArr[1] > 0 ? "N" : "S");
-  return lng + " " + lat;
-};
+let globalFormApi: FormApi | null = null;
 
 const getDetail = async ({
   formState,
@@ -111,8 +108,6 @@ const getDetail = async ({
       lng,
     });
 
-    formApi.setValue("detailAddress", address);
-    formApi.setValue("detailLocation", location);
     setLoading(false);
     Toast.success("成功");
   } catch (error) {
@@ -130,6 +125,10 @@ export default () => {
 
   const localStorageQueryType = localStorage.getItem("queryType") as QueryType;
 
+  window._AMapSecurityConfig = {
+    securityJsCode: localStorageJsSecurity,
+  };
+
   const [loading, setLoading] = useState(false);
 
   const [detail, setDetail] = useState<Detail>({});
@@ -141,81 +140,177 @@ export default () => {
     localStorage.setItem("queryType", queryType);
   }, [queryType]);
 
+  useEffect(() => {
+    globalFormApi.setValue("address", detail.address);
+    globalFormApi.setValue("location", detail.location);
+  }, [detail]);
+
   return (
     <div style={{ padding: "10px" }}>
       <Form>
-        {({ formState, values, formApi }) => (
-          <Row gutter={16}>
-            <Col xs={24} md={12} lg={8}>
-              <Form.Section text="配置">
-                <Form.Input
-                  field="apiKey"
-                  label={{
-                    text: "高德地图 Web服务 Key",
-                    extra: (
-                      <Typography.Text type="quaternary">
-                        使用 位置名称、位置ID 时需要填写该 Key
-                      </Typography.Text>
-                    ),
-                  }}
-                  mode="password"
-                  initValue={localStorageApiKey}
-                  onChange={(key) => {
-                    localStorage.setItem("apiKey", key);
-                  }}
-                ></Form.Input>
+        {({ formState, values, formApi }) => {
+          globalFormApi = formApi;
+          return (
+            <Row gutter={16}>
+              <Col xs={24} md={12} lg={8}>
+                <Form.Section text="配置">
+                  <Form.Input
+                    field="apiKey"
+                    label={{
+                      text: "高德地图 Web服务 Key",
+                      extra: (
+                        <Typography.Text type="quaternary">
+                          使用 位置名称、位置ID 时需要填写该 Key
+                        </Typography.Text>
+                      ),
+                    }}
+                    mode="password"
+                    initValue={localStorageApiKey}
+                    onChange={(key) => {
+                      localStorage.setItem("apiKey", key);
+                    }}
+                  ></Form.Input>
 
-                <Form.Input
-                  field="jsKey"
-                  label={{
-                    text: "高德地图 Web端 Key",
-                    extra: (
-                      <Typography.Text type="quaternary">
-                        使用 地图选点、结果地图 时需要填写该 Key
-                      </Typography.Text>
-                    ),
-                  }}
-                  mode="password"
-                  initValue={localStorageJsKey}
-                  onChange={(key) => {
-                    localStorage.setItem("jsKey", key);
-                  }}
-                ></Form.Input>
+                  <Form.Input
+                    field="jsKey"
+                    label={{
+                      text: "高德地图 Web端 Key",
+                      extra: (
+                        <Typography.Text type="quaternary">
+                          使用 地图选点、结果地图 时需要填写该 Key
+                        </Typography.Text>
+                      ),
+                    }}
+                    mode="password"
+                    initValue={localStorageJsKey}
+                    onChange={(key) => {
+                      localStorage.setItem("jsKey", key);
+                    }}
+                  ></Form.Input>
 
-                <Typography.Text
-                  link={{ href: "https://console.amap.com/dev/key/app" }}
-                  icon={<IconCode />}
-                  underline
-                >
-                  高德地图开放平台 控制台
-                </Typography.Text>
+                  <Form.Input
+                    field="jsSecurity"
+                    label={{
+                      text: "高德地图 Web端 安全密钥",
+                      extra: (
+                        <Typography.Text type="quaternary">
+                          使用 自动补全 时需要填写该 安全密钥
+                        </Typography.Text>
+                      ),
+                    }}
+                    mode="password"
+                    initValue={localStorageJsSecurity}
+                    onChange={(key) => {
+                      localStorage.setItem("jsSecurity", key);
+                    }}
+                  ></Form.Input>
 
-                <Button
-                  block
-                  onClick={() => {
-                    window.location.reload();
-                  }}
-                >
-                  刷新页面
-                </Button>
-              </Form.Section>
-            </Col>
+                  <Typography.Text
+                    link={{ href: "https://console.amap.com/dev/key/app" }}
+                    icon={<IconCode />}
+                    underline
+                  >
+                    高德地图开放平台 控制台
+                  </Typography.Text>
 
-            <Col xs={24} md={12} lg={8}>
-              <Form.Section text="查询">
-                <Tabs
-                  type="line"
-                  activeKey={queryType}
-                  onChange={(v) => {
-                    setQueryType(v as QueryType);
-                  }}
-                >
-                  <TabPane tab="位置名称" itemKey="placeName">
-                    <Form.Input
-                      field="placeName"
-                      label="地理位置名称"
-                      extraText="如：清华大学 或 北京市海淀区双清路30号"
-                      onEnterPress={() =>
+                  <Banner
+                    fullMode={false}
+                    closeIcon={null}
+                    description="修改后建议刷新页面，以确保生效"
+                  />
+
+                  <Button
+                    block
+                    onClick={() => {
+                      window.location.reload();
+                    }}
+                  >
+                    刷新
+                  </Button>
+                </Form.Section>
+              </Col>
+
+              <Col xs={24} md={12} lg={8}>
+                <Form.Section text="查询">
+                  <Tabs
+                    type="line"
+                    activeKey={queryType}
+                    onChange={(v) => {
+                      setQueryType(v as QueryType);
+                    }}
+                  >
+                    <TabPane tab="位置名称" itemKey="placeName">
+                      <Form.Input
+                        field="placeName"
+                        label="地理位置名称"
+                        extraText="如：清华大学 或 北京市海淀区双清路30号"
+                        onEnterPress={() =>
+                          getDetail({
+                            formState,
+                            formApi,
+                            queryType,
+                            setDetail,
+                            setLoading,
+                          })
+                        }
+                        showClear
+                      ></Form.Input>
+                    </TabPane>
+
+                    <TabPane tab="分享URL" itemKey="shareUrl">
+                      <Form.Input
+                        field="shareUrl"
+                        label={{
+                          text: "地理位置分享 URL",
+                        }}
+                        extraText="如：https://surl.amap.com/f0nreX51o667"
+                        onEnterPress={() =>
+                          getDetail({
+                            formState,
+                            formApi,
+                            queryType,
+                            setDetail,
+                            setLoading,
+                          })
+                        }
+                        showClear
+                      ></Form.Input>
+                    </TabPane>
+                    <TabPane tab="位置ID" itemKey="placeUrlOrId" disabled>
+                      <Form.Input
+                        field="placeUrlOrId"
+                        label={{
+                          text: "地理位置 URL 或 ID （即将上线）",
+                        }}
+                        extraText="如：https://amap.com/place/B000A7BD6C 或 B000A7BD6C"
+                        onEnterPress={() =>
+                          getDetail({
+                            formState,
+                            formApi,
+                            queryType,
+                            setDetail,
+                            setLoading,
+                          })
+                        }
+                        showClear
+                        disabled
+                      ></Form.Input>
+                    </TabPane>
+
+                    <TabPane tab="地图选点" itemKey="mapMarker">
+                      <QueryMapContainer
+                        jsKey={formState.values.jsKey}
+                        setDetail={setDetail}
+                        formApi={formApi}
+                      />
+                    </TabPane>
+                  </Tabs>
+
+                  {queryType != "mapMarker" && (
+                    <Button
+                      theme="solid"
+                      block
+                      onClick={() =>
                         getDetail({
                           formState,
                           formApi,
@@ -224,123 +319,62 @@ export default () => {
                           setLoading,
                         })
                       }
-                      showClear
-                    ></Form.Input>
-                  </TabPane>
+                      loading={loading}
+                    >
+                      请求
+                    </Button>
+                  )}
+                </Form.Section>
+              </Col>
 
-                  <TabPane tab="分享URL" itemKey="shareUrl">
-                    <Form.Input
-                      field="shareUrl"
-                      label={{
-                        text: "地理位置分享 URL",
-                      }}
-                      extraText="如：https://surl.amap.com/f0nreX51o667"
-                      onEnterPress={() =>
-                        getDetail({
-                          formState,
-                          formApi,
-                          queryType,
-                          setDetail,
-                          setLoading,
-                        })
+              <Col xs={24} md={24} lg={8}>
+                <Form.Section text="结果">
+                  <Form.Label text="结果地图" />
+                  <ResultMapContainer
+                    jsKey={formState.values.jsKey}
+                    lng={detail.lng}
+                    lat={detail.lat}
+                  />
+
+                  <Form.Input
+                    field="address"
+                    label="结果地址"
+                    readOnly
+                  ></Form.Input>
+                  <Form.Input
+                    field="location"
+                    label="结果坐标"
+                    readOnly
+                  ></Form.Input>
+                  <Button
+                    block
+                    onClick={async () => {
+                      try {
+                        if (!formState.values.location) {
+                          Toast.error("请先获取地理位置信息");
+                          return;
+                        }
+                        if (!navigator.clipboard) {
+                          Toast.error("您的浏览器不支持复制");
+                          return;
+                        }
+                        await navigator.clipboard.writeText(
+                          formState.values.location
+                        );
+                        Toast.success("复制成功");
+                      } catch (error) {
+                        console.error(error);
+                        Toast.error("复制失败");
                       }
-                      showClear
-                    ></Form.Input>
-                  </TabPane>
-                  <TabPane tab="位置ID" itemKey="placeUrlOrId" disabled>
-                    <Form.Input
-                      field="placeUrlOrId"
-                      label={{
-                        text: "地理位置 URL 或 ID （即将上线）",
-                      }}
-                      extraText="如：https://amap.com/place/B000A7BD6C 或 B000A7BD6C"
-                      onEnterPress={() =>
-                        getDetail({
-                          formState,
-                          formApi,
-                          queryType,
-                          setDetail,
-                          setLoading,
-                        })
-                      }
-                      showClear
-                      disabled
-                    ></Form.Input>
-                  </TabPane>
-
-                  <TabPane
-                    tab="地图选点"
-                    itemKey="mapMarker"
-                    disabled
-                  ></TabPane>
-                </Tabs>
-
-                <Button
-                  theme="solid"
-                  block
-                  onClick={() =>
-                    getDetail({
-                      formState,
-                      formApi,
-                      queryType,
-                      setDetail,
-                      setLoading,
-                    })
-                  }
-                  loading={loading}
-                >
-                  请求
-                </Button>
-              </Form.Section>
-            </Col>
-
-            <Col xs={24} md={24} lg={8}>
-              <Form.Section text="结果">
-                <Form.Label text="结果地图" />
-                <ResultMapContainer
-                  jsKey={formState.values.jsKey}
-                  lng={detail.lng}
-                  lat={detail.lat}
-                />
-
-                <Form.Input
-                  field="detailAddress"
-                  label="结果地址"
-                  readOnly
-                ></Form.Input>
-                <Form.Input
-                  field="detailLocation"
-                  label="结果坐标"
-                  readOnly
-                ></Form.Input>
-                <Button
-                  block
-                  onClick={async () => {
-                    try {
-                      if (!formState.values.detailLocation) {
-                        Toast.error("请先获取地理位置信息");
-                        return;
-                      }
-                      if (!navigator.clipboard) {
-                        Toast.error("您的浏览器不支持复制");
-                        return;
-                      }
-                      await navigator.clipboard.writeText(
-                        formState.values.detailLocation
-                      );
-                      Toast.success("复制成功");
-                    } catch (error) {
-                      console.error(error);
-                      Toast.error("复制失败");
-                    }
-                  }}
-                >
-                  复制
-                </Button>
-              </Form.Section>
-            </Col>
-          </Row>
-        )}
+                    }}
+                  >
+                    复制
+                  </Button>
+                </Form.Section>
+              </Col>
+            </Row>
+          );
+        }}
       </Form>
     </div>
   );

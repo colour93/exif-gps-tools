@@ -1,1 +1,1 @@
-export type QueryType = "placeName" | "placeUrlOrId" | "shareUrl";
+export type QueryType = "placeName" | "placeUrlOrId" | "shareUrl" | "mapMarker";
