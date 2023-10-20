@@ -125,7 +125,7 @@ export default () => {
 
   const localStorageQueryType = localStorage.getItem("queryType") as QueryType;
 
-  window._AMapSecurityConfig = {
+  window["_AMapSecurityConfig"] = {
     securityJsCode: localStorageJsSecurity,
   };
 
