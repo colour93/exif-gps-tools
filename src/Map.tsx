@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import AMapLoader from "@amap/amap-jsapi-loader";
 import React from "react";
-import { AutoComplete, Space, Spin, Typography } from "@douyinfe/semi-ui";
+import {
+  AutoComplete,
+  Space,
+  Spin,
+  Toast,
+  Typography,
+} from "@douyinfe/semi-ui";
 import { Detail } from "types/Detail";
 import { locationConvert } from "utils";
 import { FormApi } from "@douyinfe/semi-ui/lib/es/form";
@@ -78,6 +84,33 @@ const genMap = (type: "query" | "result") => {
   return map;
 };
 
+const getAddressFromGeocode = ({
+  map,
+  location,
+  setDetail,
+}: {
+  map: any;
+  location: {
+    lng: number;
+    lat: number;
+  };
+  setDetail: React.Dispatch<Detail>;
+}) => {
+  const { lat, lng } = location;
+
+  geocoder.getAddress(location, (status, result: ReGeocodeResponse) => {
+    const { formattedAddress } = result.regeocode;
+    setDetail({
+      address: formattedAddress,
+      location: locationConvert(`${lng},${lat}`),
+      lat,
+      lng,
+    });
+  });
+  map.clearMap();
+  setMarker({ map, lat, lng });
+};
+
 const handleMapClick = (
   {
     target,
@@ -88,24 +121,10 @@ const handleMapClick = (
       lng: number;
       lat: number;
     };
-    pixel: any;
-    type: any;
   },
   setDetail: React.Dispatch<Detail>
 ) => {
-  const { lat, lng } = lnglat;
-
-  geocoder.getAddress(lnglat, (status, result: ReGeocodeResponse) => {
-    const { formattedAddress } = result.regeocode;
-    setDetail({
-      address: formattedAddress,
-      location: locationConvert(`${lng},${lat}`),
-      lat,
-      lng,
-    });
-  });
-  target.clearMap();
-  setMarker({ map: target, lat, lng });
+  getAddressFromGeocode({ map: target, location: lnglat, setDetail });
 };
 
 export function ResultMapContainer({
@@ -169,18 +188,26 @@ const searchPlace = ({
 }) => {
   if (!searchAutoComplete || !v) return;
 
-  searchAutoComplete.search(v, (status: any, result: AutoCompleteResponse) => {
-    setSearching(false);
-    setSearchItems(
-      result.tips.map((v) => {
-        return {
-          value: v.name,
-          itemKey: v.id,
-          data: v,
-        };
-      })
-    );
-  });
+  searchAutoComplete.search(
+    v,
+    (status: any, result: AutoCompleteResponse | string) => {
+      if (status != "ok") {
+        Toast.error(result as string);
+        return;
+      }
+
+      setSearching(false);
+      setSearchItems(
+        (result as AutoCompleteResponse).tips.map((v) => {
+          return {
+            value: v.name,
+            itemKey: v.id,
+            data: v,
+          };
+        })
+      );
+    }
+  );
 };
 
 export function QueryMapContainer({
@@ -192,7 +219,6 @@ export function QueryMapContainer({
   setDetail: React.Dispatch<Detail>;
   formApi: FormApi;
 }) {
-  const [searchString, setSearchString] = useState("");
   const [searchItems, setSearchItems] = useState<AutoCompleteItem[]>();
   const [searching, setSearching] = useState(false);
 
